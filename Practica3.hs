@@ -328,25 +328,25 @@ masOcurrentes xs = undefined
 --    numDiv 12 == 6 
 -- ---------------------------------------------------------------------
 
-numDiv x = undefined
+numDiv x = length [elem | elem <- [1..x], mod x elem == 0]
 
 -- ---------------------------------------------------------------------
--- Ejercicio 21.2. Definir la funciÃ³n entre tal que (entre a b c) es la
+-- Ejercicio 21.2. Definir la función entre tal que (entre a b c) es la
 -- lista de los naturales entre a y b con, al menos, c divisores. Por
 -- ejemplo,  
 --    entre 11 16 5 == [12, 16]
 -- ---------------------------------------------------------------------
 
-entre a b c = undefined
+entre a b c = [x | x<- [a..b], (numDiv x) >= c]
 
 -- ---------------------------------------------------------------------
--- Ejercicio 22. Definir la funciÃ³n conPos tal que (conPos xs) es la
+-- Ejercicio 22. Definir la función conPos tal que (conPos xs) es la
 -- lista obtenida a partir de xs especificando las posiciones de sus
 -- elementos. Por ejemplo, 
 --    conPos [1,5,0,7] == [(1,0),(5,1),(0,2),(7,3)]
 -- ---------------------------------------------------------------------
 
-conPos xs = undefined
+conPos xs = zip xs [0.. length xs]
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 23. Definir la funciÃ³n tal que (pares cs) es la cadena
@@ -354,9 +354,8 @@ conPos xs = undefined
 --    pares "el cielo sobre berlin" == "e il or eln"
 -- ---------------------------------------------------------------------
 
-pares cs = undefined
-
-
+pares cs = [fst x | x <- ltuplas, even (snd x)]
+        where ltuplas = conPos cs
 -- ---------------------------------------------------------------------
 -- Ejercicio 24.1. Una terna (x,y,z) de enteros positivos es pitagÃ³rica
 -- si x^2 + y^2 = z^2. Usando una lista por comprensiÃ³n, definir la
@@ -368,7 +367,7 @@ pares cs = undefined
 -- ---------------------------------------------------------------------
 
 pitagoricas :: Int -> [(Int,Int,Int)]
-pitagoricas n = undefined
+pitagoricas n = [(x,y,z) | x <- [1..n], y <- [1..n], z <- [1..n], x^2 + y^2 == z^2]
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 24.2. Definir la funciÃ³n 
@@ -382,7 +381,7 @@ pitagoricas n = undefined
 -- ---------------------------------------------------------------------
 
 numeroDePares :: (Int,Int,Int) -> Int
-numeroDePares (x,y,z) = undefined
+numeroDePares (x,y,z) = length [num | num <-[x,y,z], even num]
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 24.3. Definir la funciÃ³n
@@ -394,10 +393,10 @@ numeroDePares (x,y,z) = undefined
 -- ---------------------------------------------------------------------
 
 conjetura :: Int -> Bool
-conjetura n = undefined
+conjetura n = and [odd $ numeroDePares num | num <- pitagoricas n]
 
 -- ---------------------------------------------------------------------
--- Ejercicio 25. Definir, por comprensiÃ³n, la funciÃ³n
+-- Ejercicio 25. Definir, por comprensión, la función
 --    sumaConsecutivos :: [Int] -> [Int]
 -- tal que (sumaConsecutivos xs) es la suma de los pares de elementos
 -- consecutivos de la lista xs. Por ejemplo,
@@ -406,9 +405,7 @@ conjetura n = undefined
 -- ---------------------------------------------------------------------
 
 sumaConsecutivos :: [Int] -> [Int]
-sumaConsecutivos xs = undefined
-
-
+sumaConsecutivos xs = [x + y | (x,y) <- zip xs (tail xs)]
 -- ---------------------------------------------------------------------
 -- Ejercicio 26. Los polinomios pueden representarse de forma dispersa o
 -- densa. Por ejemplo, el polinomio 6x^4-5x^2+4x-7 se puede representar
@@ -425,7 +422,8 @@ sumaConsecutivos xs = undefined
 -- ---------------------------------------------------------------------
 
 densa :: [Int] -> [(Int,Int)]
-densa xs = undefined
+densa xs = [(x,y)| (x,y) <- zip lista xs, y/=0]
+        where lista = [(length xs -1), (length xs -2)..0]
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 27. La funciÃ³n 
@@ -451,7 +449,7 @@ densa xs = undefined
 pares2 :: [a] -> [b] -> [(a,b)]
 pares2 xs ys = [(x,y) | x <- xs, y <- ys]
 
--- La redefiniciÃ³n de pares es
+-- La redefinición de pares es
 pares2' :: [a] -> [b] -> [(a,b)]
 pares2' xs ys = undefined
 
@@ -560,7 +558,7 @@ puedenVotar t = [a | (a,b,c) <- t, b>=18]
 --    ["Pedro"]
 -- ---------------------------------------------------------------------
 
-puedenVotarEn t c = undefined
+puedenVotarEn t p = [a | (a,b,c) <- t, p==c, b>=18]
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 30. Dos listas xs, ys de la misma longitud son
@@ -580,7 +578,7 @@ perpendiculares xs yss = [ys | ys <-yss, productoEscalar xs ys == 0]
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 31.1. Un nÃºmero natural n
--- es especial si para todo divisor d de n, d+n/d es primo. Definir la
+-- es especial si para todo divisor d de n, d+(n/d) es primo. Definir la
 -- funciÃ³n  
 --    especial :: Integer -> Bool
 -- tal que (especial x) se verifica si x es especial. Por ejemplo,
@@ -588,21 +586,24 @@ perpendiculares xs yss = [ys | ys <-yss, productoEscalar xs ys == 0]
 --    especial 20  ==  False
 -- ---------------------------------------------------------------------
 
-esPrimo x = (mod x 2) == 1
+esPrimo n = (mod n 2) == 1
 
 especial :: Integer -> Bool
-especial x = undefined
-
+especial n = and [esPrimo (d+(div n d))| d <- listaDivisores]
+        where listaDivisores = [elem | elem <- [1..n], mod n elem == 0]
+        --revisar
 -- ---------------------------------------------------------------------
--- Ejercicio 31.2. Definir la funciÃ³n 
+-- Ejercicio 31.2. Definir la función 
 --    sumaEspeciales :: Integer -> Integer
 -- tal que (sumaEspeciales n) es la suma de los nÃºmeros especiales
 -- menores o iguales que n. Por ejemplo, 
 --    sumaEspeciales 100  ==  401
 -- ---------------------------------------------------------------------
 
-sumaEspeciales :: Integer -> Integer
-sumaEspeciales n = undefined
+-- sumaEspeciales :: Integer -> Integer
+sumaEspeciales n = sum [x | x <- listaespeciales, x <=n ]
+        where listaespeciales = [x | x <- [0..n], especial x]
+        --revisar
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 32.1. Un nÃºmero es muy compuesto si tiene mÃ¡s divisores que
