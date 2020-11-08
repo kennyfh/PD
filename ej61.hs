@@ -10,36 +10,38 @@ import Test.QuickCheck
 -- tal que (takeWhile p xs) es la lista de los elemento de xs hasta el
 -- primero que no cumple la propiedad p. Por ejemplo,
 --    takeWhile' (<7) [2,3,9,4,5]  ==  [2,3]
+-- takeWhile'' (<7) [2,3,9,4,5]
 -- ---------------------------------------------------------------------
  
 takeWhile' :: (a -> Bool) -> [a] -> [a]
 takeWhile' _ [] = []
-takeWhile' f (x:xs)
-    | f x = x : (takeWhile' f xs)
+takeWhile' p (x:xs)
+    | p x = [x] ++ (takeWhile' p xs)
     | otherwise = []
 
-takeWhile'' f = foldr (\x acc -> if f x then x : acc else []) []
+takeWhile'' p = scanr (\x acc -> if (p x) then [x] ++ acc else []) []
+
 -- ---------------------------------------------------------------------
 -- Ejercicio 2. Redefinir por recursiÃ³n la funciÃ³n
 --    dropWhile :: (a -> Bool) -> [a] -> [a]
 -- tal que (dropWhile p xs) es la lista de eliminando los elemento de xs
 -- hasta el primero que no cumple la propiedad p. Por ejemplo,
 --    dropWhile' (<7) [2,3,9,4,5]  ==  [9,4,5]
+
 -- ---------------------------------------------------------------------
  
-dropWhile' :: (a -> Bool) -> [a] -> [a]
+-- dropWhile' :: (a -> Bool) -> [a] -> [a]
 dropWhile' _ [] = []
-dropWhile' f (x:xs)
-    | f x = dropWhile' f xs
+dropWhile' p (x:xs)
+    | p x = dropWhile' p xs
     | otherwise = x:xs
 
-dropWhile'' f = foldl (\acc x -> if (f x) && (null acc) then [] else acc ++ [x]) []
-
+dropWhile'' p = foldl (\acc x -> if (p x) && (null acc) then [] else acc ++ [x] ) []
+ 
 -- ---------------------------------------------------------------------
 -- Ejercicio 3.1. Redefinir, usando foldr, la funciÃ³n concat. Por ejemplo, 
 --    concat' [[1,3],[2,4,6],[1,9]]  ==  [1,3,2,4,6,1,9]
 -- ---------------------------------------------------------------------
- 
 concat' :: [[a]] -> [a]
 concat' = foldr (++) []
 
@@ -50,9 +52,9 @@ concat' = foldr (++) []
 
 -- La propiedad es
 prop_concat :: [[Int]] -> Bool
-prop_concat xss = concat xss == concat' xss
+prop_concat xss = (concat xss) == (concat xss)
 
--- La comprobaciÃ³n es
+-- La comprobaciÃ³n es Correcta
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 3.3. Comprobar con QuickCheck que la longitud de 
@@ -61,9 +63,11 @@ prop_concat xss = concat xss == concat' xss
 
 -- La propiedad es
 prop_longConcat :: [[Int]] -> Bool
-prop_longConcat xss = (length (concat' xss)) == sum (map length xss)
+prop_longConcat xss = (length $ concat' xss) == (sum $ map length xss)
 
--- La comprobaciÃ³n es
+-- La comprobaciÃ³n es 
+-- *Main> quickCheck prop_longConcat
+-- +++ OK, passed 100 tests.
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 4. Definir la funciÃ³n segmentos con su signatura
@@ -72,13 +76,11 @@ prop_longConcat xss = (length (concat' xss)) == sum (map length xss)
 --    segmentos even [1,2,0,4,9,6,4,5,7,2]  ==  [[2,0,4],[6,4],[2]]
 --    segmentos odd  [1,2,0,4,9,6,4,5,7,2]  ==  [[1],[9],[5,7]]
 -- ---------------------------------------------------------------------
-
 segmentos p xs
     | null xs = []
     | null $ cumple = segmentos p $ tail xs
     | otherwise = [cumple] ++ (segmentos p $ dropWhile' p xs)
     where cumple =  takeWhile' p xs
- 
 -- ---------------------------------------------------------------------
 -- Ejercicio 5. La funciÃ³n 
 --    divideMedia :: [Double] -> ([Double],[Double])
@@ -93,21 +95,19 @@ segmentos p xs
  
 -- La definiciÃ³n por filtrado es
 divideMediaF :: [Double] -> ([Double],[Double])
-divideMediaF xs = ((filter (<media xs) xs), (filter (>media xs) xs))
-
-media ::  [Double] -> Double
-media ns = sum ns / fromIntegral(length ns)
+divideMediaF xs = ((filter (< media) xs), (filter (>media) xs))
+        where media =  (sum xs) / fromIntegral (length xs)
  
--- La definición por recursión es
+-- La definiciÃ³n por recursiÃ³n es
 divideMediaR :: [Double] -> ([Double],[Double])
-divideMediaR xs = divideMediaAuxR [] [] media xs
-    where media = sum xs / fromIntegral(length xs)
+divideMediaR xs  = divideMediaR_aux [] [] media xs
+    where media = (sum xs) / fromIntegral (length xs)
 
-divideMediaAuxR ys zs media [] = (ys,zs)
-divideMediaAuxR ys zs media (x:xs)
-    | x < media = divideMediaAuxR (ys ++ [x]) zs media xs
-    | x > media = divideMediaAuxR ys (zs ++ [x]) media xs
-    | otherwise =  divideMediaAuxR ys zs media xs
+divideMediaR_aux ys zs media [] = (ys,zs)
+divideMediaR_aux ys zs media (x:xs)
+    | x < media =  divideMediaR_aux (ys ++  [x]) zs media xs
+    | x > media =  divideMediaR_aux ys (zs ++ [x]) media xs
+    | otherwise =  divideMediaR_aux  ys zs media xs
  
 -- ---------------------------------------------------------------------
 -- Ejercicio 6. Definir la funciÃ³n
@@ -120,14 +120,15 @@ divideMediaAuxR ys zs media (x:xs)
 -- ---------------------------------------------------------------------
  
 agrupa :: Eq a => [[a]] -> [[a]]
-agrupa [] =  []
+agrupa [] = []
 agrupa [x,y] = map (\(a,b) -> a:[b]) (zip x y)
 agrupa (xs:xss) = map (\(a,b) -> a:b) (zip xs (agrupa xss))
+ 
 -- ---------------------------------------------------------------------
 -- Ejercicio 7. Se considera la funciÃ³n 
 --    filtraAplica :: (a -> b) -> (a -> Bool) -> [a] -> [b]
--- tal que (filtraAplica f p xs) es la lista obtenida aplicÃ¡ndole a los
--- elementos de xs que cumplen el predicado p la funciÃ³n f. Por ejemplo,
+-- tal que (filtraAplica f p xs) es la lista obtenida aplicándole a los
+-- elementos de xs que cumplen el predicado p la función f. Por ejemplo,
 --    filtraAplica (4+) (<3) [1..7]  =>  [5,6]
 -- Se pide, definir la funciÃ³n
 -- 1. por comprensiÃ³n,
@@ -142,21 +143,21 @@ filtraAplica_1 f p xs= [f x | x <- xs, p x]
 
 -- La definiciÃ³n con map y filter es
 filtraAplica_2 :: (a -> b) -> (a -> Bool) -> [a] -> [b]
-filtraAplica_2 f p xs = map f (filter p xs)
+filtraAplica_2 f p xs= map f (filter p xs)
 
 -- La definiciÃ³n por recursiÃ³n es
 filtraAplica_3 :: (a -> b) -> (a -> Bool) -> [a] -> [b]
-filtraAplica_3 _ _ [] = []
+filtraAplica_3  f p [] = []
 filtraAplica_3 f p (x:xs)
     | p x = (f x):(filtraAplica_3 f p xs)
     | otherwise =  filtraAplica_3 f p xs
 
--- La definiciÃ³n por plegado es
+-- La definición por plegado es
 filtraAplica_4 :: (a -> b) -> (a -> Bool) -> [a] -> [b]
-filtraAplica_4 f p= foldr (\x y -> if p x then (f x):y else y) []
- 
+filtraAplica_4 f p = foldl (\acc x -> if (p x) then acc ++ [f x] else acc) []
+
 -- ---------------------------------------------------------------------
--- Ejercicio 8. Definir, usando recursión, plegado, y acumulador, la 
+-- Ejercicio 8. Definir, usando recursiÃ³n, plegado, y acumulador, la 
 -- funciÃ³n
 --    inversa :: [a] -> [a]
 -- tal que (inversa xs) es la inversa de la lista xs. Por ejemplo,
@@ -165,16 +166,16 @@ filtraAplica_4 f p= foldr (\x y -> if p x then (f x):y else y) []
 
 inversaR :: [a] -> [a]
 inversaR [] = []
-inversaR (x:xs) = (inversaR xs) ++ [x]
+inversaR (x:xs) = inversaR (xs) ++  [x]
 
 inversaP :: [a] -> [a]
-inversaP = foldr (\x acum -> acum++[x]) []
+inversaP = foldr (\x acc -> acc ++ [x]) []
 
 inversaAC :: [a] -> [a]
 inversaAC xs = inversaAC_aux xs []
 
 inversaAC_aux [] ac = ac
-inversaAC_aux (x:xs) ac = inversaAC_aux xs (x:ac) 
+inversaAC_aux (x:xs) ac = inversaAC_aux xs (x:ac)
 
 inversaPI :: [a] -> [a]
 inversaPI = undefined
@@ -192,18 +193,18 @@ inversaPI = undefined
 -- ---------------------------------------------------------------------
 
 inversaP' :: [a] -> [a]
-inversaP' = foldl (\y x -> x:y) []
+inversaP' = foldl (\acc x -> x:acc) []
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 10. Redefinir, por recursiÃ³n y plegado la funciÃ³n map. 
 -- ---------------------------------------------------------------------
 
 mapR :: (a -> b) -> [a] -> [b]
-mapR _ [] = []
-mapR f (x:xs) = (f x):(mapR f xs)
+mapR f [] = []
+mapR f (x:xs)= [f x] ++ (mapR f xs)
 
 mapP :: (a -> b) -> [a] -> [b]
-mapP f = foldr (\x y -> (f x):y) []
+mapP f = foldl (\acc x -> acc ++ [f x]) []
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 11. Redefinir, usando foldl y foldr la funciÃ³n filter. Por
@@ -211,12 +212,11 @@ mapP f = foldr (\x y -> (f x):y) []
 --    filter (<4) [1,7,3,2]  =>  [1,3,2]
 -- ---------------------------------------------------------------------
 
--- filterL :: (a -> Bool) -> [a] -> [a]
--- filterL = foldl (\acum x -> if f x then acum ++[x] else acum) []
+filterL :: (a -> Bool) -> [a] -> [a]
+filterL p = foldl (\acc x -> if (p x) then acc ++ [x] else acc) []
 
-
--- filterR :: (a -> Bool) -> [a] -> [a]
--- filterR f = foldr (\x acum -> if f x then x:acum else acum) []
+filterR :: (a -> Bool) -> [a] -> [a]
+filterR p = foldr (\x acc -> if (p x) then x:acc else acc) []
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 12. Definir, mediante recursiÃ³n, plegado, acumulador, y 
@@ -229,19 +229,25 @@ mapP f = foldr (\x y -> (f x):y) []
 
 sumllR :: Num a => [[a]] -> a
 sumllR [] = 0
-sumllR (xs:xss) = (sum xs) + (sumllR xss)
+sumllR (xs:xss)
+    | null xss =  sum xs
+    | otherwise =  (sum xs) +  sumllR xss
 
 sumllP :: Num a => [[a]] -> a
-sumllP = foldr (\xs acum -> (sum xs) +  acum) 0
+sumllP = foldr (\x acc -> acc + (sum x)) 0
 
-sumllA :: Num a => [[a]] -> a
-sumllA = undefined
+-- sumllA :: Num a => [[a]] -> a
+-- sumllA xss = sumllA_aux xss 0
+
+-- sumllA_aux (xs:xss) acum
+--     | null xss =  sum xs
+--     | otherwise = sumllA_aux xss (sum xs)
 
 sumllAP :: Num a => [[a]] -> a
-sumllAP = foldl (\y x -> sum x + y) 0
+sumllAP = undefined
 
 -- ---------------------------------------------------------------------
--- Ejercicio 13. Definir, mediante recursiÃ³n y plegado, la funciÃ³n
+-- Ejercicio 13. Definir, mediante recursión y plegado, la funciÃ³n
 --    borra :: Eq a => a -> a -> [a]
 -- tal que (borra y xs) es la lista obtenida borrando las ocurrencias de
 -- y en xs. Por ejemplo, 
@@ -251,13 +257,18 @@ sumllAP = foldl (\y x -> sum x + y) 0
 -- ---------------------------------------------------------------------
 
 borraR :: Eq a => a -> [a] -> [a]
-borraR = undefined
+borraR y xs = borraR_aux y xs []
+
+borraR_aux y [] ls = ls
+borraR_aux y (x:xs) ls
+    | x == y = borraR_aux y xs ls
+    | otherwise =  borraR_aux y xs (ls ++ [x])
 
 borraP :: Eq a => a -> [a] -> [a]
-borraP = undefined
+borraP y = foldl (\acc x -> if (x==y) then acc else acc ++ [x]) []
 
 -- ---------------------------------------------------------------------
--- Ejercicio 14. Definir, mediante recursiÃ³n y plegado la funciÃ³n
+-- Ejercicio 14. Definir, mediante recursión y plegado la función
 --    diferencia :: Eq a => [a] -> [a] -> [a]
 -- tal que (diferencia xs ys) es la diferencia del conjunto xs e ys; es
 -- decir el conjunto de los elementos de xs que no pertenecen a ys. Por
@@ -266,10 +277,15 @@ borraP = undefined
 -- ---------------------------------------------------------------------
 
 diferenciaR :: Eq a => [a] -> [a] -> [a]
-diferenciaR = undefined
+diferenciaR xs ys = diferenciaR_aux xs ys []
 
-diferenciaP :: Eq a => [a] -> [a] -> [a]
-diferenciaP = undefined
+diferenciaR_aux [] _  acc = acc
+diferenciaR_aux (x:xs) ys acc
+    | x `elem` ys = diferenciaR_aux xs ys acc
+    | otherwise = diferenciaR_aux xs ys (acc ++ [x])
+
+-- diferenciaP :: Eq a => [a] -> [a] -> [a]
+-- diferenciaP ys = foldl (\acc x -> if (x `elem` ys) then acc else x:acc) []
 
 -- -------------------------------------------------------------------
 -- Ejercicio 15. Definir mediante plegado la funciÃ³n 
@@ -278,12 +294,11 @@ diferenciaP = undefined
 -- xs. Por ejemplo, 
 --    producto [2,1,-3,4,5,-6] == 720
 -- ---------------------------------------------------------------------
-
 producto :: Num a => [a] -> a
-producto = undefined
-
+producto = foldl (\acc x -> x * acc) 1
+            -- otra forma es foldl (*) 1
 -- ---------------------------------------------------------------------
--- Ejercicio 16. Definir mediante plegado la funciÃ³n 
+-- Ejercicio 16. Definir mediante plegado la función 
 --    productoPred :: Num a => (a -> Bool) -> [a] -> a
 -- tal que (productoPred p xs) es el producto de los elementos de la
 -- lista xs que verifican el predicado p. Por ejemplo, 
@@ -291,10 +306,10 @@ producto = undefined
 -- ---------------------------------------------------------------------
 
 productoPred :: Num a => (a -> Bool) -> [a] -> a
-productoPred = undefined
+productoPred p = foldl (\acc x -> if (p x) then x * acc else acc) 1
 
 -- ---------------------------------------------------------------------
--- Ejercicio 17.1. Definir, mediante recursiÃ³n, la funciÃ³n
+-- Ejercicio 17.1. Definir, mediante recursión, la función
 --    maximumR :: Ord a => [a] -> a
 -- tal que (maximumR xs) es el mÃ¡ximo de la lista xs. Por ejemplo,
 --    maximumR [3,7,2,5]                  ==  7
@@ -305,7 +320,10 @@ productoPred = undefined
 -- ---------------------------------------------------------------------
 
 maximumR :: Ord a => [a] -> a
-maximumR = undefined
+maximumR [x] = x
+maximumR (x:xs)
+    | x > maximumR xs = x
+    | otherwise =  maximumR xs
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 17.2. La funciÃ³n de plegado foldr1 estÃ¡ definida por 
@@ -322,10 +340,8 @@ maximumR = undefined
 -- 
 -- Nota: La funciÃ³n maximumP es equivalente a la predefinida maximum.
 -- ---------------------------------------------------------------------
-
 maximumP :: Ord a => [a] -> a
-maximumP = undefined
-
+maximumP = foldr1 (\x acc -> if (x > acc) then x else acc)
 -- ---------------------------------------------------------------------
 -- Ejercicio 18. Definir, por plegado, la funciÃ³n
 -- sumaDivP :: Int -> [Int] -> Int
@@ -334,12 +350,10 @@ maximumP = undefined
 -- sumaDivP 3 [1..7] == 45
 -- sumaDivP 2 [1..7] == 56
 -- ---------------------------------------------------------------------
-
 sumaDivP :: Int -> [Int] -> Int
-sumaDivP = undefined
-
+sumaDivP num = foldr (\x acc -> if (mod x num == 0) then x^2 + acc else acc) 0
 -- ---------------------------------------------------------------------
--- Ejercicio 19.1. Definir, con la funciÃ³n all, la funciÃ³n
+-- Ejercicio 19.1. Definir, con la función all, la función
 --    relacionadosA :: (a -> a -> Bool) -> [a] -> Bool
 -- tal que (relacionadosA r xs) se verifica si para todo par (x,y) de
 -- elementos consecutivos de xs se cumple la relaciÃ³n r. Por ejemplo,
@@ -348,7 +362,7 @@ sumaDivP = undefined
 -- ---------------------------------------------------------------------
 
 relacionadosA :: (a -> a -> Bool) -> [a] -> Bool
-relacionadosA = undefined
+relacionadosA r xs = all (uncurry r) (zip xs $ tail xs)
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 19.2. Definir, con la funciÃ³n foldr, la funciÃ³n
