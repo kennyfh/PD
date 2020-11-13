@@ -85,10 +85,36 @@ intercalaPL y = foldr (\x acc -> if (x < y) then [y,x] ++ acc else [x] ++ acc) [
 -- 1) por comprensiÃ³n,
 -- 2) por orden superior (map, filter, ...)
 -- 3) por recursiÃ³n,
+
 -- 4) por plegado (con 'foldr').
 -- ----------------------------------------------------------------------------
+-- 1)   
+dec2entComp xs = sum [(fst x) * (10^(snd x)) | x <- tupla]
+        where tupla = zip xs [length xs -1, length xs -2..0]
 
-    
+-- 2)
+dec2entOrd xs = sum $ map (\(x,y) -> x * (10^y)) tupla
+        where tupla = zip xs [length xs -1, length xs -2..0]
+
+-- 3) 
+
+dec2entRec xs = dec2entRec_aux tupla 0
+    where tupla = zip xs [length xs -1, length xs -2..0]
+
+dec2entRec_aux [] acc =  acc
+dec2entRec_aux (x:xs) acc = dec2entRec_aux xs (acc + (fst x) * (10^(snd x)))
+
+-- 4)
+
+dec2entPL xs = dec2entPL_aux tupla
+    where tupla = zip xs [length xs -1, length xs -2..0]
+
+dec2entPL_aux = foldr (\x acc -> acc + (fst x) * (10^(snd x))) 0
+
+-- Otras alternativas
+-- dec2entP ls = read (concat (foldr (\x acc -> [show x]++acc) [] ls)) :: Integer
+
+-- dec2ent4 = read . foldr (\x acc -> show x ++ acc) []
 -- ----------------------------------------------------------------------------
 -- Ejercicio 4. Se considera la funciÃ³n
 --     diferencia :: Eq a => [a] -> [a] -> [a]
@@ -106,6 +132,26 @@ intercalaPL y = foldr (\x acc -> if (x < y) then [y,x] ++ acc else [x] ++ acc) [
 -- 4) por plegado (con 'foldr').
 -- ----------------------------------------------------------------------------
 
+--1
+diferenciaC xs ys = [x | x <- xs, not $ elem x ys]
+
+--2 
+diferenciaS xs ys = filter (\x -> not $ elem x ys) xs
+
+--3 
+diferenciaR xs ys = diferencia_aux xs ys []
+
+diferencia_aux [] ys acc =  acc
+diferencia_aux (x:xs) ys acc
+    | elem x ys = diferencia_aux xs ys acc
+    | otherwise =  diferencia_aux xs ys (acc ++ [x])
+
+-- 4 
+-- esta mal
+-- diferencia ys = foldr (\x acc -> if (elem x ys) then acc else [x] ++ acc) []
+
+
+
 -- ----------------------------------------------------------------------------
 -- Ejercicio 5. Se considera la funciÃ³n
 --   primerosYultimos :: [[a]] -> ([a],[a])
@@ -122,7 +168,28 @@ intercalaPL y = foldr (\x acc -> if (x < y) then [y,x] ++ acc else [x] ++ acc) [
 -- 3) por recursiÃ³n,
 -- 4) por plegado (con 'foldr').
 -- ----------------------------------------------------------------------------
+-- 1)
+primerosYultimosC xss = (t head, t last)
+        where t f = [f xs | xs <- xss, not $ null xs]
 
+-- 2)
+primerosYultimosS xss = (t head, t last)
+    where t f = map f $ filter (not . null) xss
+
+-- 3 )
+
+primerosYultimosR xss = primerosYultimosAux [] [] xss
+primerosYultimosAux acumFst acumLst [] = (acumFst, acumLst)
+primerosYultimosAux acumFst acumLst (xs:xss) 
+        | null xs = primerosYultimosAux acumFst acumLst xss 
+        | otherwise = primerosYultimosAux (acumFst++[head xs]) (acumLst++[last xs]) xss
+
+-- 4 )
+primerosYultimosP :: [[a]] -> ([a],[a])
+primerosYultimosP ls = (primeros, ultimos)
+    where primeros = primerosYultimosPAUX ls head 
+          ultimos  = primerosYultimosPAUX ls last
+primerosYultimosPAUX ls f = foldr (\x acc -> if null x then acc else [f x]++acc) [] ls
 
 -- ----------------------------------------------------------------------------
 -- Ejercicio 6. Una lista hermanada es una lista de nÃºmeros estrictamente
@@ -146,7 +213,17 @@ intercalaPL y = foldr (\x acc -> if (x < y) then [y,x] ++ acc else [x] ++ acc) [
 -- Nota: Usa la funciÃ³n 'gcd'
 -- ----------------------------------------------------------------------------
 
+herm :: Int -> Int -> Bool
+herm 0 b = False
+herm a 0 = False
+herm 1 b = True
+herm a 1 = True
+herm a b = gcd a b > 1
 
+hermanada1 :: [Int] -> Bool
+hermanada1 xs = and [herm (xs!!i) (xs!!(i+1)) | i <- [0..length xs -2]]
+
+hermanos x y =  x==1 || y==1 || (gcd x y /=1)
 
 -- ----------------------------------------------------------------------------
 -- Ejercicio 7. Un elemento de una lista es permanente si ninguno de los que
