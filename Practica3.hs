@@ -283,8 +283,10 @@ multiplosUnitarios x y n = take n [z | z <- unitarios y, mod z x == 0]
 -- ejemplo, 
 --    primosEntre 11 44  ==  [11,13,17,19,23,29,31,37,41,43]
 -- ---------------------------------------------------------------------
--- primosEntre x y = [n | n <- [x..y], primo n]
--- primo n = factores n == [1, n]
+primosEntre x y = [z | z<-[x..y], primo z]
+
+primo :: Integer -> Bool
+primo n = length (factores (fromIntegral n)) == 1
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 18. Definir la funciÃ³n cortas tal que (cortas xs) es la
@@ -318,8 +320,11 @@ eslibreCuadrado n = null [m | m <- [2..n], rem n (m^2) == 0]
 --    masOcurrentes [1,2,3,4,5,2,3,1,4] == [1,2,3,4,2,3,1,4]
 --    masOcurrentes "Salamanca"         == "aaaa"
 -- ---------------------------------------------------------------------
+ocurrencias :: Eq a => a -> [a] -> Int
+ocurrencias m xs = length [x | x <- xs, x==m]
 
-masOcurrentes xs = undefined
+masOcurrentes xs = [x | x <- xs, ocurrencias x xs == max]
+        where max = maximum [ocurrencias x xs| x<-xs]
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 21.1. Definir la funciÃ³n numDiv tal que (numDiv x) es el
@@ -441,7 +446,7 @@ densa xs = [(x,y)| (x,y) <- zip lista xs, y/=0]
 --    pares2' :: [a] -> [b] -> [(a,b)]
 -- tal que pares2' sea equivalente a pares2.
 -- 
--- IndicaciÃ³n: Utilizar la funciÃ³n predefinida concat y encajar una
+-- Indicación: Utilizar la función predefinida concat y encajar una
 -- lista por comprensiÃ³n dentro de la otra. 
 -- ---------------------------------------------------------------------
 
@@ -451,7 +456,7 @@ pares2 xs ys = [(x,y) | x <- xs, y <- ys]
 
 -- La redefinición de pares es
 pares2' :: [a] -> [b] -> [(a,b)]
-pares2' xs ys = undefined
+pares2' xs ys = concat [[(x,y) | y <- ys] | x<-xs]
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 28. La bases de datos sobre actividades de personas pueden
@@ -586,12 +591,11 @@ perpendiculares xs yss = [ys | ys <-yss, productoEscalar xs ys == 0]
 --    especial 20  ==  False
 -- ---------------------------------------------------------------------
 
-esPrimo n = (mod n 2) == 1
 
 especial :: Integer -> Bool
-especial n = and [esPrimo (d+(div n d))| d <- listaDivisores]
-        where listaDivisores = [elem | elem <- [1..n], mod n elem == 0]
-        --revisar
+especial x = and [primo (fromIntegral (d + div x' d)) | d <- factores x']
+  where x' = fromIntegral x
+
 -- ---------------------------------------------------------------------
 -- Ejercicio 31.2. Definir la función 
 --    sumaEspeciales :: Integer -> Integer
@@ -600,13 +604,11 @@ especial n = and [esPrimo (d+(div n d))| d <- listaDivisores]
 --    sumaEspeciales 100  ==  401
 -- ---------------------------------------------------------------------
 
--- sumaEspeciales :: Integer -> Integer
-sumaEspeciales n = sum [x | x <- listaespeciales, x <=n ]
-        where listaespeciales = [x | x <- [0..n], especial x]
-        --revisar
+sumaEspeciales :: Integer -> Integer
+sumaEspeciales n = sum [x | x <- [1..n], especial x]
 
 -- ---------------------------------------------------------------------
--- Ejercicio 32.1. Un nÃºmero es muy compuesto si tiene mÃ¡s divisores que
+-- Ejercicio 32.1. Un número es muy compuesto si tiene más divisores que
 -- sus anteriores. Por ejemplo, 12 es muy compuesto porque tiene 6
 -- divisores (1, 2, 3, 4, 6, 12) y todos los nÃºmeros del 1 al 11 tienen
 -- menos de 6 divisores.  
@@ -621,7 +623,10 @@ sumaEspeciales n = sum [x | x <- listaespeciales, x <=n ]
 -- ---------------------------------------------------------------------
 
 esMuyCompuesto :: Int -> Bool
-esMuyCompuesto x = undefined 
+esMuyCompuesto x = and [numDiv x > numDiv num|  num <-[1..x-1]] 
+
+esMuyCompuestoMinimo = head [x | x<- [1000..9999], esMuyCompuesto x]
+
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 32.2. Definir la funciÃ³n
@@ -632,7 +637,7 @@ esMuyCompuesto x = undefined
 -- ---------------------------------------------------------------------
 
 muyCompuesto :: Int -> Int
-muyCompuesto n = undefined
+muyCompuesto n = [x | x<- [1..], esMuyCompuesto x]!!10
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 33. Definir la funciÃ³n  
@@ -645,7 +650,7 @@ muyCompuesto n = undefined
 -- ---------------------------------------------------------------------
 
 todosIguales:: Eq a => [a] -> Bool
-todosIguales xs = undefined
+todosIguales xs = null xs || and [x == head xs| x<-xs]
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 34.1. Las bases de datos de alumnos matriculados por
@@ -679,7 +684,7 @@ matriculas = [("Almeria","Matematicas",27),
               ("Malaga","Informatica",314)]
 
 totalAlumnos :: [(String,String,Int)] -> Int
-totalAlumnos bd = undefined
+totalAlumnos bd =  sum [c | (_,_,c) <- bd]
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 34.2. Definir la funciÃ³n 
@@ -692,7 +697,7 @@ totalAlumnos bd = undefined
 -- ---------------------------------------------------------------------
 
 totalMateria :: [(String,String,Int)] -> String -> Int
-totalMateria bd m = undefined
+totalMateria bd m = sum [c | (_,b,c) <- bd, m==b]
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 35. Dada una lista de nÃºmeros enteros, definiremos el
@@ -712,5 +717,5 @@ totalMateria bd m = undefined
 --    mayorSalto [10,-10,1,4,20,-2] == 22
 -- ---------------------------------------------------------------------
 
-mayorSalto :: [Integer] -> Integer
-mayorSalto xs = undefined
+-- mayorSalto :: [Integer] -> Integer
+mayorSalto xs = maximum [abs (x-y)| (x,y) <- zip xs (tail xs)]

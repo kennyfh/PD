@@ -5,12 +5,12 @@
 -- =====================================================================
 
 -- ---------------------------------------------------------------------
--- IntroducciÃ³n                                                       --
+-- Introducción                                                       --
 -- ---------------------------------------------------------------------
 
 -- El objetivo de esta prÃ¡ctica es trabajar con la codificaciÃ³n de 
 -- cadenas, caracteres y comprensiÃ³n en Haskell implementando el cifrado
--- CÃ©sar. Se puede usar el ejemplo en
+-- César. Se puede usar el ejemplo en
 --    http://www.cs.us.es/~jalonso/cursos/i1m-19/temas/tema-5.pdf
 -- donde se usÃ³ el cifrado cesar con solo minÃºsculas. AsÃ­, por ejemplo,  
 --    ghci> descifra "Ytit Ufwf Sfif"
@@ -162,7 +162,7 @@ letras xs = [ x | x <- xs, (elem x ['a'..'z']) || (elem x ['A'..'Z'])]
 -- ---------------------------------------------------------------------
 -- Ejercicio 10.1. Definir la funciÃ³n
 --    ocurrencias :: Eq a => a -> [a] -> Int
--- tal que (ocurrencias x xs) es el nÃºmero de veces que ocurre el
+-- tal que (ocurrencias x xs) es el número de veces que ocurre el
 -- elemento x en la lista xs. Por ejemplo, 
 --    ocurrencias 'a' "Salamanca"  ==  4  
 -- ---------------------------------------------------------------------
@@ -177,8 +177,8 @@ ocurrencias x xs = length [c | c <- xs, x==c]
 
 -- La propiedad es 
 prop_ocurrencia_inv :: Int -> [Int] -> Bool
-prop_ocurrencia_inv x xs = (ocurrencias x xs) == (ocurrencias x (reverse xs))
--- PREGUNTAR PROFESOR
+prop_ocurrencia_inv x xs =
+    ocurrencias x xs == ocurrencias x (reverse xs)
 
 -- La comprobaciÃ³n es
 
@@ -190,7 +190,8 @@ prop_ocurrencia_inv x xs = (ocurrencias x xs) == (ocurrencias x (reverse xs))
 
 -- La propiedad es
 prop_ocurrencia_conc :: Int -> [Int] -> [Int] -> Bool
-prop_ocurrencia_conc = undefined
+prop_ocurrencia_conc x xs ys = (ocurrencias x (concat [xs,ys])) == 
+    ((ocurrencias x xs) + (ocurrencias x ys))
 
 -- La comprobaciÃ³n es
 
@@ -205,9 +206,10 @@ prop_ocurrencia_conc = undefined
 -- ---------------------------------------------------------------------
 
 frecuencias :: String -> [Float]
-frecuencias xs = [porcentaje (ocurrencias x xs') n | x<-['a'..'z'] ]
-    where n = length xs
-          xs' = [toLower x | x <- xs]
+frecuencias xs = 
+    [porcentaje (ocurrencias x xs') n | x <- ['a'..'z']]
+    where xs' = [toLower x | x <- xs]
+          n   = length (letras xs)
 
 
 -- ---------------------------------------------------------------------
@@ -220,7 +222,7 @@ frecuencias xs = [porcentaje (ocurrencias x xs') n | x<-['a'..'z'] ]
 -- ---------------------------------------------------------------------
 
 chiCuad :: [Float] -> [Float] -> Float
-chiCuad = undefined
+chiCuad os es = sum [((o-e)^2)/e | (o,e) <- zip os es]
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 13.2, Comprobar con QuickCheck que para cualquier par de
@@ -230,11 +232,15 @@ chiCuad = undefined
 
 -- La propiedad es
 prop_chiCuad_1 :: [Float] -> [Float] -> Bool
-prop_chiCuad_1 = undefined
+prop_chiCuad_1 xs ys = (chiCuad xs ys == 0) == (xs == ys)
 
 -- La comprobaciÃ³n es
+-- *Main> quickCheck prop_chiCuad_1
+-- *** Failed! Falsified (after 2 tests and 1 shrink):     
+-- []
+-- [0.0]
 
--- ---------------------------------------------------------------------
+---------------------------------------------------------
 -- Ejercicio 13.3. A la vista de los contraejemplos del apartado
 -- anterior, quÃ© condiciÃ³n hay que aÃ±adir para que se verifique la
 -- propiedad.
@@ -242,7 +248,8 @@ prop_chiCuad_1 = undefined
 
 -- La propiedad es
 prop_chiCuad_2 :: [Float] -> [Float] -> Property
-prop_chiCuad_2 = undefined
+prop_chiCuad_2 xs ys =
+    length xs == length ys ==> (chiCuad xs ys == 0) == (xs == ys)
 
 -- La comprobaciÃ³n es
 
@@ -254,7 +261,11 @@ prop_chiCuad_2 = undefined
 
 -- La propiedad es
 prop_chiCuad_3 :: [Float] -> [Float] -> Bool
-prop_chiCuad_3 = undefined
+prop_chiCuad_3 xs ys =
+    (chiCuad as bs == 0) == (as == bs)
+    where n  = min (length xs) (length ys)
+          as = take n xs
+          bs = take n ys
 
 -- La comprobaciÃ³n es
 
@@ -269,7 +280,9 @@ prop_chiCuad_3 = undefined
 -- ---------------------------------------------------------------------
 
 rota :: Int -> [a] -> [a]
-rota = undefined
+rota _ [] = []
+rota n xs = drop m xs ++ take m xs
+    where m = n `mod` length xs
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 14.2. Comprobar con QuickCkeck si para cualquier lista xs
@@ -279,7 +292,8 @@ rota = undefined
 
 -- La propiedad es
 prop_rota :: Int -> Int -> [Int] -> Property
-prop_rota = undefined
+prop_rota n m xs =
+    n /= 0 && m /= 0 ==> rota m (rota n xs) == rota (n+m) xs
 
 -- La comprobaciÃ³n es
 

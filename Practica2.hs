@@ -314,7 +314,14 @@ area a b c =
 -- ---------------------------------------------------------------------
 
 interseccion :: Ord a => [a] -> [a] -> [a]
-interseccion = undefined
+interseccion [] _ = []
+interseccion _ [] = []
+interseccion [a1,a2] [b1,b2]
+    |  a <= b = [a,b]
+    | otherwise =  []
+    where a = max a1 b1
+          b = min a2 b2
+interseccion _ _ = error "Imposible"
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 11.2. Comprobar con QuickCheck que la intersecciÃ³n de
@@ -323,7 +330,7 @@ interseccion = undefined
 
 -- La propiedad es
 prop_interseccion :: Int -> Int -> Int -> Int -> Bool
-prop_interseccion a1 b1 a2 b2 = undefined
+prop_interseccion a1 b1 a2 b2 = interseccion [a1,b1] [a2,b2] == interseccion [a2,b2] [a1,b1]
 
 -- La comprobaciÃ³n es
 
@@ -339,8 +346,12 @@ prop_interseccion a1 b1 a2 b2 = undefined
 --    formaReducida (4,10)  ==  (2,5)
 -- ---------------------------------------------------------------------
 
-formaReducida :: (Int,Int) -> (Int,Int) 
-formaReducida (a,b) = undefined
+formaReducida :: (Int,Int) -> (Int,Int)
+formaReducida (0,_) = (0,1)
+formaReducida (a,b) = (a1 * signum (a*b),b1)
+        where c = gcd a b
+              a1 = abs (a `div` c)
+              b1 = abs (b `div` c)
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 12.2. Definir la funciÃ³n 
@@ -351,7 +362,10 @@ formaReducida (a,b) = undefined
 -- ---------------------------------------------------------------------
 
 sumaRacional :: (Int,Int) -> (Int,Int) -> (Int,Int)
-sumaRacional (a,b) (c,d) = undefined
+sumaRacional (a,b) (c,d) = formaReducida (a1+c1,mcm)
+    where mcm = lcm b d
+          a1 = (mcm `div` b) * a
+          c1 = (mcm `div` d) * c
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 12.3. Definir la funciÃ³n 
@@ -362,7 +376,7 @@ sumaRacional (a,b) (c,d) = undefined
 -- ---------------------------------------------------------------------
 
 productoRacional :: (Int,Int) -> (Int,Int) -> (Int,Int)
-productoRacional (a,b) (c,d) = undefined
+productoRacional (a,b) (c,d) = formaReducida (a*c,b*d)
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 12.4. Definir la funciÃ³n 
@@ -375,7 +389,7 @@ productoRacional (a,b) (c,d) = undefined
 -- ---------------------------------------------------------------------
 
 igualdadRacional :: (Int,Int) -> (Int,Int) -> Bool
-igualdadRacional (a,b) (c,d) = undefined
+igualdadRacional (a,b) (c,d) = a*d == b*c
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 12.5. Comprobar con QuickCheck la propiedad distributiva
@@ -384,6 +398,9 @@ igualdadRacional (a,b) (c,d) = undefined
 
 -- La propiedad es
 prop_distributiva :: (Int,Int) -> (Int,Int) -> (Int,Int) -> Property
-prop_distributiva x y z = undefined
+prop_distributiva x@(_,d1) y@(_,d2) z@(_,d3) =
+  d1>0 && d2>0 && d3>0 ==> igualdadRacional prodSuma sumaProd
+  where prodSuma = productoRacional x (sumaRacional y z)
+        sumaProd = sumaRacional (productoRacional x y) (productoRacional x z)
 
 -- La comprobaciÃ³n es

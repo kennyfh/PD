@@ -53,7 +53,7 @@ inicial =  [5,4,3,2,1]
 -- ---------------------------------------------------------------------
 
 finalizado :: Tablero -> Bool
-finalizado t = and [e==0 | e <- t]
+finalizado t = undefined
 
 -- ---------------------------------------------------------------------
 -- Ejecicio 2.2. Definir la función
@@ -67,7 +67,7 @@ finalizado t = and [e==0 | e <- t]
 -- ---------------------------------------------------------------------
 
 valida :: Tablero -> Int -> Int -> Bool
-valida t f n = ((t !! (f-1)) >= n) && (f < (length t)) && (n>=1)
+valida t f n = undefined
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 3. Definir la función
@@ -78,9 +78,7 @@ valida t f n = ((t !! (f-1)) >= n) && (f < (length t)) && (n>=1)
 -- ---------------------------------------------------------------------
 
 jugada :: Tablero -> Int -> Int -> Tablero
-jugada t f n 
-    | valida t f n = map (\x-> if snd x == f then fst x - n else fst x) (zip t [1..])
-    | otherwise = error "jugada no valida"
+jugada t f n = undefined
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 4. Definir la acción
@@ -92,7 +90,7 @@ jugada t f n
 -- ---------------------------------------------------------------------
 
 nuevaLinea :: IO ()
-nuevaLinea = putStrLn "Hello World"
+nuevaLinea = undefined
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 5. Definir la función
@@ -104,7 +102,7 @@ nuevaLinea = putStrLn "Hello World"
 -- ---------------------------------------------------------------------
 
 estrellas :: Int -> String
-estrellas n = concat [ "* " | x <- [1..n]]
+estrellas n = undefined
                               
 -- ---------------------------------------------------------------------
 -- Ejercicio 6. Definir la acción
@@ -116,7 +114,7 @@ estrellas n = concat [ "* " | x <- [1..n]]
 -- ---------------------------------------------------------------------
  
 escribeFila :: Int -> Int -> IO ()
-escribeFila f n = putStrLn ((show f)++ ": " ++ (estrellas n))
+escribeFila f n =  undefined
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 7. Definir la acción
@@ -132,7 +130,8 @@ escribeFila f n = putStrLn ((show f)++ ": " ++ (estrellas n))
 -- ---------------------------------------------------------------------
 
 escribeTablero :: Tablero -> IO ()
-escribeTablero t = sequence_ $ map (\(f,n) -> escribeFila f n) (zip [1..length t] t)
+escribeTablero = undefined
+
 -- ---------------------------------------------------------------------
 -- Ejercicio 8. Definir la acción
 --    leeDigito :: String -> IO Int
@@ -152,15 +151,7 @@ escribeTablero t = sequence_ $ map (\(f,n) -> escribeFila f n) (zip [1..length t
 -- ---------------------------------------------------------------------
 
 leeDigito :: String -> IO Int
-leeDigito c = do
-    putStr c
-    d <- getLine
-    if isDigit $ head d
-        then
-            return $ digitToInt $ head d
-        else do
-            putStrLn "Entrada incorrecta"
-            leeDigito c
+leeDigito c = undefined
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 9. Los jugadores se representan por los números 1 y 2.
