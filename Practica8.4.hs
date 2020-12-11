@@ -31,7 +31,6 @@
 -- tiene asociado tan solo un carácter en forma de cadena.
 -- ---------------------------------------------------------------------
 
-
 -- ---------------------------------------------------------------------
 -- Ejercicio 1. Definir el tipo de datos para un árbol Trie polimórfico,
 -- donde los nodos internos almacenen un elemento de un tipo Clave y puedan
@@ -42,7 +41,15 @@
 
 
 -- ---------------------------------------------------------------------
+arbEjem :: TrieS
 
+arbEjem = N "" [N "I" [N "V" [N "A" [N "N" [H 69712]]]],N "J" [N "U" [N "L" [N "I" [N "A" [H 62375,H 67321]]],N "A" [N "N" [H 68972]]]]]
+
+data Trie c v = H v
+            | N c [Trie c v]
+            deriving Show
+
+type TrieS = Trie String Int
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 2. Definir las funciones siguientes:
@@ -51,15 +58,17 @@
 --    (b) (clave n), que devuelva la clave asociado al nodo n. Si n es
 --         una hoja, devolver la cadena vacía "".
 --    (c) (esHoja n), que indique con un booleano si el nodo n es una hoja.
+arbolTrieVacio :: TrieS
+arbolTrieVacio = N "" []
 
-arbolTrieVacio = undefined
+clave :: TrieS -> String
+clave (H n) = ""
+clave (N a _ ) = a
 
-clave = undefined
-
-esHoja = undefined
+esHoja :: TrieS -> Bool
+esHoja (H n)= True
+esHoja _ = False
 -- ---------------------------------------------------------------------
-
-
 -- ---------------------------------------------------------------------
 -- Ejercicio 3. Definir la función (siguienteNodo hs s), que reciba una
 -- lista de árboles as y una cadena de un solo carácter s, y devuelva un
@@ -70,7 +79,15 @@ esHoja = undefined
 --  2. El segundo elemento del par serán todos los nodos de hs cuya clave no
 --     coincidan con s.
 
-siguienteNodo = undefined
+siguienteNodo :: [TrieS] -> String -> (TrieS,[TrieS])
+
+siguienteNodo hs s = (n, res)
+
+        where n = if null fil then (N s []) else head fil
+
+              fil = [ x | x <- hs , clave x==s]
+
+              res = [ x | x <- hs , clave x/=s]
 -- ---------------------------------------------------------------------
 
 

@@ -195,7 +195,7 @@ repeatArbol x = N x (repeatArbol x ) ( repeatArbol x)
 -- ---------------------------------------------------------------------
 
 replicateArbol :: Int -> a -> Arbol a
-replicateArbol n = undefined
+replicateArbol n x  = takeArbol n (repeatArbol x)
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 7.1. Definir la función
@@ -205,9 +205,13 @@ replicateArbol n = undefined
 --    ghci> mapArbol (*2) (N 9 (N 3 (H 2) (H 4)) (H 7)) 
 --    N 18 (N 6 (H 4) (H 8)) (H 14)
 -- ---------------------------------------------------------------------
+-- anadeHojas :: Arbol a -> a -> a -> Arbol a
+-- anadeHojas (H n) x y = N n (H x) (H y)
+-- anadeHojas (N n izq der) x y = N n (anadeHojas izq x y) (anadeHojas der x y)
 
 mapArbol :: (a -> a) -> Arbol a -> Arbol a
-mapArbol = undefined
+mapArbol f (H n) = H (f n)
+mapArbol f (N n i d) = N (f n) (mapArbol f i) (mapArbol f d)
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 8. Se consideran los árboles con operaciones booleanas
@@ -264,7 +268,10 @@ ej2 = Conj (Disy (Conj (HB True) (HB False))
                  (HB True))
 
 valorB:: ArbolB -> Bool
-valorB = undefined
+valorB (HB b) = b
+valorB (Neg a) =  not $ valorB a
+valorB (Disy a1 a2) = (valorB a1) || (valorB a2) -- +
+valorB (Conj a1 a2) = (valorB a1) && (valorB a2) --  *
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 9. Los árboles generales se pueden representar mediante el
@@ -309,15 +316,21 @@ data ArbolG a = NG a [ArbolG a]
 
 ejG1, ejG2, ejG3 :: ArbolG Int
 ejG1 = NG 1 [NG 2 [],NG 3 [NG 4 []]]
+
 ejG2 = NG 3 [NG 5 [NG 6 []], 
            NG 4 [], 
            NG 7 [NG 2 [], NG 1 []]]
+
 ejG3 = NG 3 [NG 5 [NG 6 []], 
            NG 4 [NG 1 [NG 2 [],NG 3 [NG 4 []]]], 
            NG 7 [NG 2 [], NG 1 []]]
 
+
 ramifica :: ArbolG a -> ArbolG a -> (a -> Bool) -> ArbolG a
-ramifica = undefined
+ramifica (NG a []) a2 p= if(p a) then NG a [a2] else NG a []
+ramifica (NG a as) a2 p
+      | p a = NG a ([ramifica lo a2 p | lo <- as] ++ [a2])
+      | otherwise = NG a [ramifica lo a2 p | lo<- as]
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 10. Definir la función
@@ -329,7 +342,9 @@ ramifica = undefined
 -- ---------------------------------------------------------------------
 
 nHojasG :: ArbolG a -> Int
-nHojasG = undefined
+nHojasG (NG a []) = 1
+-- nHojasG (NG a s)= sum [nHojasG x | x <- s]
+nHojasG (NG _ as ) =  sum $ map nHojasG as
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 11. Definir la función
@@ -341,7 +356,8 @@ nHojasG = undefined
 -- ---------------------------------------------------------------------
 
 profundidadG :: ArbolG a -> Int
-profundidadG = undefined
+profundidadG (NG a []) = 0
+profundidadG (NG a s)=  maximum [1 + profundidadG x | x <-s]
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 12. Definir la función
@@ -353,4 +369,5 @@ profundidadG = undefined
 -- ---------------------------------------------------------------------
 
 bin2gen :: Arbol a -> ArbolG a
-bin2gen = undefined
+bin2gen (H n) = NG n []
+bin2gen (N n a1 a2) = NG n [bin2gen a1, bin2gen a2]

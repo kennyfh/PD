@@ -53,7 +53,7 @@ inicial =  [5,4,3,2,1]
 -- ---------------------------------------------------------------------
 
 finalizado :: Tablero -> Bool
-finalizado t = undefined
+finalizado t = t == [0,0,0,0,0]
 
 -- ---------------------------------------------------------------------
 -- Ejecicio 2.2. Definir la función
@@ -67,7 +67,7 @@ finalizado t = undefined
 -- ---------------------------------------------------------------------
 
 valida :: Tablero -> Int -> Int -> Bool
-valida t f n = undefined
+valida t f n = ((t !! (f-1)) >= n) && (n>=1)
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 3. Definir la función
@@ -78,7 +78,7 @@ valida t f n = undefined
 -- ---------------------------------------------------------------------
 
 jugada :: Tablero -> Int -> Int -> Tablero
-jugada t f n = undefined
+jugada t f n = (take (f-1) t) ++ [((t!!(f-1))-n)] ++ (drop (f) t)
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 4. Definir la acción
@@ -90,8 +90,7 @@ jugada t f n = undefined
 -- ---------------------------------------------------------------------
 
 nuevaLinea :: IO ()
-nuevaLinea = undefined
-
+nuevaLinea = putChar '\n'
 -- ---------------------------------------------------------------------
 -- Ejercicio 5. Definir la función
 --    estrellas :: Int -> String
@@ -102,7 +101,7 @@ nuevaLinea = undefined
 -- ---------------------------------------------------------------------
 
 estrellas :: Int -> String
-estrellas n = undefined
+estrellas n = unwords ["* " | _ <- [1..n]]
                               
 -- ---------------------------------------------------------------------
 -- Ejercicio 6. Definir la acción
@@ -114,7 +113,7 @@ estrellas n = undefined
 -- ---------------------------------------------------------------------
  
 escribeFila :: Int -> Int -> IO ()
-escribeFila f n =  undefined
+escribeFila f n =  putStrLn ((show f) ++ ": " ++  estrellas n)
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 7. Definir la acción
@@ -130,7 +129,7 @@ escribeFila f n =  undefined
 -- ---------------------------------------------------------------------
 
 escribeTablero :: Tablero -> IO ()
-escribeTablero = undefined
+escribeTablero t = sequence_ [escribeFila i j | (i,j) <- zip [1..length t] t] 
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 8. Definir la acción
@@ -151,8 +150,15 @@ escribeTablero = undefined
 -- ---------------------------------------------------------------------
 
 leeDigito :: String -> IO Int
-leeDigito c = undefined
-
+leeDigito c = do
+    putStr c
+    x <- getChar
+    if (isDigit x) then
+        return (read [x])
+    else do
+        putStrLn "\nEntrada incorrecta (se esperaba un digito)"
+        z <- leeDigito c
+        return z
 -- ---------------------------------------------------------------------
 -- Ejercicio 9. Los jugadores se representan por los números 1 y 2.
 -- Definir la función 
@@ -161,7 +167,7 @@ leeDigito c = undefined
 -- ---------------------------------------------------------------------
 
 siguiente :: Int -> Int
-siguiente = undefined
+siguiente j = (mod j 2) + 1
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 10. Definir la acción
@@ -198,9 +204,39 @@ siguiente = undefined
 --    
 --    J 1 He ganado
 -- ---------------------------------------------------------------------
+selecciona :: Tablero -> IO (Int,Int)
+selecciona t = do
+    f <- leeDigito "Elige una fila: "
+    putChar '\n'
+    n <- leeDigito "Elige cuantas estrellas retiras: "
+    putChar '\n'
+    if (valida t f n) then
+        return (f,n)
+    else do
+        putStrLn "No es valida esta jugada"
+        z <- selecciona t
+        return z
+
 
 juego :: Tablero -> Int -> IO ()
-juego t j = undefined
+juego t j = do
+    putStrLn "\n"
+    escribeTablero t
+    putStrLn "\n"
+    putStrLn ("J" ++ (show j))
+    (f,n) <- selecciona t
+    putStrLn (show f)
+    putStrLn (show n)
+
+    let tablero = jugada t f n
+
+    if(finalizado tablero) then
+        putStrLn (("J" ++ (show j)) ++ " Ha ganado")
+    else do
+        z <- juego tablero (siguiente j)
+        return z
+
+
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 11. Definir la acción
@@ -289,10 +325,10 @@ juego t j = undefined
 -- ---------------------------------------------------------------------
 
 nim :: IO ()
-nim = undefined
+nim = juego inicial 1
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 12. Definir la función principal para poder compilar el
 -- el fichero. Compila el fichero y genera un ejecutable.
 -- ---------------------------------------------------------------------
-
+    

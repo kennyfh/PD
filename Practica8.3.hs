@@ -26,6 +26,10 @@ data Expr1 = C1 Int
            | P1 Expr1 Expr1  
            deriving Show
 
+evalua :: Expr1 -> Int
+evalua (C1 n) = n
+evalua (S1 expr1 expr2) =  evalua expr1 + evalua expr2
+evalua (P1 expr1 expr2) =  evalua expr1 * evalua expr2
 -- ---------------------------------------------------------------------
 -- Ejercicio 2. Definir la función aplica, tal que (aplica f e) es la 
 -- expresión obtenida aplicando la función f a cada uno de los números 
@@ -35,8 +39,9 @@ data Expr1 = C1 Int
 --    ghci> aplica (*2) (S1 (P1 (C1 3) (C1 5)) (P1 (C1 6) (C1 7)))
 --    S1 (P1 (C1 6) (C1 10)) (P1 (C1 12) (C1 14))
 -- ---------------------------------------------------------------------
-
-
+aplica f (C1 n) = C1 (f n)
+aplica f (S1 expr1 expr2) = S1 (aplica f expr1) (aplica f expr2)
+aplica f (P1 expr1 expr2) = P1 (aplica f expr1) (aplica f expr2)
 -- ---------------------------------------------------------------------
 -- Ejercicio 3. Las expresiones aritméticas construidas con una
 -- variable (denotada por X), los números enteros y las operaciones de
@@ -53,11 +58,15 @@ data Expr1 = C1 Int
 -- expresión e cuando se sustituye su variable por n. Por ejemplo,
 --    evaluaE (P2 X (S2 (C2 13) X)) 2  ==  30
 -- ---------------------------------------------------------------------
- 
 data Expr2 = X
            | C2 Int
            | S2 Expr2 Expr2
            | P2 Expr2 Expr2
+
+evaluaE (X) var = var
+evaluaE (C2 n) _ = n
+evaluaE (S2 expr1 expr2) n = (evaluaE expr1 n) +  (evaluaE expr2 n)
+evaluaE (P2 expr1 expr2) n = (evaluaE expr1 n) * (evaluaE expr2 n)
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 4. Definir la función numVars, tal que (numVars e) es el 
@@ -66,7 +75,10 @@ data Expr2 = X
 --    numVars X                      ==  1
 --    numVars (P2 X (S2 (C2 13) X))  ==  2
 -- ---------------------------------------------------------------------
-
+numVars X = 1
+numVars (C2 _) = 0
+numVars (P2 expr1 expr2) = (numVars expr1) +  (numVars expr2)
+numVars (S2 expr1 expr2)= (numVars expr1) +  (numVars expr2)
 -- ---------------------------------------------------------------------
 -- Ejercicio 5. Las expresiones aritméticas con variables genéricas 
 -- pueden representarse usando el siguiente tipo de datos  
@@ -85,13 +97,16 @@ data Expr2 = X
 --    ghci> evaluaG (P3 (C3 2) (S3 (V3 'a') (V3 'b'))) [('a',2),('b',5)]
 --    14
 -- ---------------------------------------------------------------------
-
 data Expr3 = C3 Int 
            | V3 Char 
            | S3 Expr3 Expr3 
            | P3 Expr3 Expr3  
            deriving Show
-                   
+
+evaluaG (C3 c) s = c
+evaluaG (V3 c) s = head [n | (c2,n) <- s, c2==c]
+evaluaG (S3 expr1 expr2) s = (evaluaG expr1 s) + (evaluaG expr2 s)
+evaluaG (P3 expr1 expr2) s = (evaluaG expr1 s) * (evaluaG expr2 s)
 -- ---------------------------------------------------------------------
 -- Ejercicio 6. Definir la función sumas, tal que (sumas e) es el 
 -- número de sumas en la expresión e. Por ejemplo, 
@@ -99,7 +114,9 @@ data Expr3 = C3 Int
 --    sumas (S3 (V3 'z') (S3 (C3 3) (V3 'x')))  ==  2
 --    sumas (P3 (V3 'z') (P3 (C3 3) (V3 'x')))  ==  0
 -- ---------------------------------------------------------------------
-                   
+sumas (S3 e1 e2) =  1 + sumas e1 + sumas e2
+sumas (P3 e1 e2) = sumas e1 + sumas e2
+sumas _ = 0                  
 -- ---------------------------------------------------------------------
 -- Ejercicio 7. Definir la función sustitucion, tal que 
 -- (sustitucion e s) es la expresión obtenida sustituyendo las variables 
@@ -109,7 +126,13 @@ data Expr3 = C3 Int
 --    ghci> sustitucion (P3 (V3 'z') (S3 (C3 3) (V3 'y'))) [('x',7),('z',9)]
 --    P3 (C3 9) (S3 (C3 3) (V3 'y'))
 -- ---------------------------------------------------------------------
-
+sustitucion (C3 n) s =  C3 n
+sustitucion (S3 exp1 exp2) s = S3 (sustitucion exp1 s) (sustitucion exp2 s)
+sustitucion (P3 exp1 exp2) s = P3 (sustitucion exp1 s) (sustitucion exp2 s)
+sustitucion (V3 c) s
+    | null ls = V3 c
+    | otherwise = C3 $ head ls
+    where ls =  [n | (c1,n) <- s, c==c1]
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 8. Definir la función reducible, tal que (reducible e) se 
@@ -123,3 +146,8 @@ data Expr3 = C3 Int
 --    reducible (C3 3)                           == False
 --    reducible (V3 'x')                         == False
 -- ---------------------------------------------------------------------
+reducible (S3 (C3 a) (C3 b))= True
+reducible (P3 (C3 a) (C3 b)) = True
+reducible (S3 exp1 exp2) =  reducible exp1 || reducible exp2
+reducible (P3 exp1 exp2)  =  reducible exp1 || reducible exp2
+reducible _ = False
