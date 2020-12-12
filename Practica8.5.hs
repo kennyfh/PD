@@ -359,10 +359,20 @@ type PuzleSerpiente = (Serpiente,Int)
 
 moverSerpiente :: PuzleSerpiente -> Movimiento -> PuzleSerpiente
 moverSerpiente (xs,n) mov
-    | mov == "Arriba" = ([(x,y) | (x,y) <- xs],n+1)
-    | mov == "Abajo" = ([(x,y) | (x,y) <- xs],n+1)
-    | mov == "Izquierda" = ([(x,y) | (x,y) <- xs],n+1)
-    | mov == "Derecha" = ([(x,y) | (x,y) <- xs],n+1)
+    | mov == "Arriba" = ([(i,j-1)] ++ (quitarCola xs),n+1)
+    | mov == "Abajo" = ([(i,j+1)] ++ (quitarCola xs),n+1)
+    | mov == "Izquierda" = ([(i-1,j)] ++ (quitarCola xs),n+1)
+    | mov == "Derecha" = ([(i+1,j)] ++ (quitarCola xs),n+1)
+    where (i,j) = head xs
+
+quitarCola :: Serpiente -> Serpiente
+quitarCola (x:[]) = []
+quitarCola (x:xs) = [x] ++ quitarCola xs
+
+
+
+ej9 :: PuzleSerpiente
+ej9 = ([(1,1),(1,2),(1,3)],4)
 
 {-
 Ejercicio 10
