@@ -37,17 +37,13 @@
 -- tener más de un hijo, y las hojas almacenen tan solo un Valor. El árbol
 -- debe ser imprimible. Además, definir a continuación un sinónimo de árbol
 -- Trie que emplee cadenas como Claves y enteros como Valores.
-
-
-
 -- ---------------------------------------------------------------------
 arbEjem :: TrieS
-
 arbEjem = N "" [N "I" [N "V" [N "A" [N "N" [H 69712]]]],N "J" [N "U" [N "L" [N "I" [N "A" [H 62375,H 67321]]],N "A" [N "N" [H 68972]]]]]
 
 data Trie c v = H v
             | N c [Trie c v]
-            deriving Show
+            deriving (Show,Eq)
 
 type TrieS = Trie String Int
 
@@ -80,45 +76,44 @@ esHoja _ = False
 --     coincidan con s.
 
 siguienteNodo :: [TrieS] -> String -> (TrieS,[TrieS])
-
 siguienteNodo hs s = (n, res)
-
         where n = if null fil then (N s []) else head fil
-
               fil = [ x | x <- hs , clave x==s]
-
               res = [ x | x <- hs , clave x/=s]
 -- ---------------------------------------------------------------------
-
-
 -- ---------------------------------------------------------------------
 -- Ejercicio 4. Definir la función (insertaEnArbol a p ), que reciba un
 -- árbol Trie, a, y un par, p, con (clave, valor), siendo clave una cadena
 -- de caracteres y valor un entero. La función debe devolver el árbol a
 -- incluyendo el nuevo par (clave,valor).
 
-insertaEnArbol = undefined
+insertaEnArbol :: TrieS -> (String,Int) -> TrieS
+insertaEnArbol (H i) _ = H i
+insertaEnArbol (N s hs) ([], v) = N s (hs++[(H v)])
+insertaEnArbol (N s hs) ((c:cs), v) = N s res
+                    where (r, ls) = siguienteNodo hs [c]
+                          res = ls ++ [insertaEnArbol r (cs,v)]
 -- ---------------------------------------------------------------------
-
-
 -- ---------------------------------------------------------------------
 -- Ejercicio 5. Definir la función (insertaEnArbol a cs), que reciba un
 -- árbol Trie, a, y una lista, cs, de pares (clave, valor), y devuelva un
 -- árbol con todos los elementos insertados. Por ejemplo, lo siguiente
 -- debería devolver el árbol ilustrado en el enunciado.
---    insertaEnArbol arbolTrieVacio
+--    insertaElemsEnArbol arbolTrieVacio
 --        [("IVAN",69712),("JULIA",62375),("JULIA",67321),("JUAN",68972)]
 
-insertaElemsEnArbol = undefined
+insertaElemsEnArbol :: TrieS -> [(String,Int)] -> TrieS
+insertaElemsEnArbol a [] = a
+insertaElemsEnArbol a (c:cs) = insertaElemsEnArbol (insertaEnArbol a c) cs
 -- ---------------------------------------------------------------------
-
-
 -- ---------------------------------------------------------------------
 -- Ejercicio 6. Definir la (consultaValor a cs), tal que reciba un árbol
 -- Trie a y una Clave cs, y devuelva los valores asociados a ella. Si la
 -- clave no está en el árbol o no tiene asociados valores, devolver la
 -- lista vacía.
-
-consultaValor = undefined
+consultaValor :: TrieS -> String -> [Int]
+consultaValor (N s []) _ = []
+consultaValor (N s hs) [] = [i | (H i) <- hs]
+consultaValor (N s hs) (c:cs) = consultaValor (fst (siguienteNodo hs [c])) cs
 -- ---------------------------------------------------------------------
 
