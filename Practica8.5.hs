@@ -34,25 +34,22 @@ son correctos y que el movimiento se puede realizar.
 -}
 
 type PilaDeDiscos = [Int]
--- los sinonimos son type
-type Varilla  = String
-type TorreDeHanoi = (PilaDeDiscos,PilaDeDiscos,PilaDeDiscos)
+type Varilla = String 
+data TorreDeHanoi =  Torre PilaDeDiscos PilaDeDiscos PilaDeDiscos
+                    deriving Show
 
-xs :: TorreDeHanoi
-xs = ([1,2,3,4,5,6,7],[],[])
+x:: TorreDeHanoi
+x = Torre [1,2,3] [4,5] [6,7]
 
-quitarElemento :: PilaDeDiscos -> PilaDeDiscos
-quitarElemento (x:[]) = []
-quitarElemento (x:xs) = [x] ++ quitarElemento xs
+moverDisco :: TorreDeHanoi -> Varilla -> Varilla ->TorreDeHanoi
 
-moverDisco :: TorreDeHanoi -> Varilla -> Varilla -> TorreDeHanoi
-moverDisco (i,c,d) v1 v2
-    | v1=="I" && v2 == "C"  = (quitarElemento i,c ++ [last i],d)
-    | v1=="I" && v2 == "D"  = (quitarElemento i,c,d ++ [last i])
-    | v1=="C" && v2 == "I"  = (i ++ [last c],quitarElemento c,d)
-    | v1=="C" && v2 == "D"  = (i,quitarElemento c,d ++ [last c])
-    | v1=="D" && v2 == "C"  = (i,c ++ [last d],quitarElemento d)
-    | v1=="D" && v2 == "I"  = (i ++ [last d],c,quitarElemento d)
+moverDisco (Torre a b c) v1 v2 
+    | v1 == "A" && v2 =="B" = (Torre (init a) (b++[last a]) (c))
+    | v1 == "A" && v2 == "C" = (Torre (init a) b (c++[last a]))
+    | v1 == "B" && v2 == "A" = (Torre (a ++[last  b]) (init b) c)
+    | v1 == "B" && v2 == "C" = (Torre a  (init b) (c ++[last  b]))
+    | v1 == "C" && v2 == "A" = (Torre (a++[last  c]) b (init c) )
+    | v1 == "C" && v2 == "B" = (Torre a (b ++[last  c]) (init c) )
 
 {-
 Ejercicio 2
@@ -120,15 +117,16 @@ todos los argumentos recibidos son correctos y que el movimiento se puede realiz
 
 type Orilla = (Int,Int)
 type Barca =  String
-type MisionerosYCanibales = (Orilla,Orilla,Barca) --  (izq,der,pos barca)
+data MisionerosYCanibales = MYC (Orilla,Orilla,Barca) --  (izq,der,pos barca)
+    deriving Show
 
 atravesarRio ::  MisionerosYCanibales -> Int -> Int -> MisionerosYCanibales
-atravesarRio ((m1,c1),(m2,c2) , barca) i1 i2
-    | barca == "Izquierda" = ((m1-i1,c1-i2),(m2+i1,c2+i2),"Derecha") 
-    | barca == "Derecha" = ((m1+i1,c1+i2),(m2-i1,c2-i2),"Izquierda")
+atravesarRio (MYC ((m1,c1),(m2,c2) , barca)) i1 i2
+    | barca == "Izquierda" = (MYC ((m1-i1,c1-i2),(m2+i1,c2+i2),"Derecha"))
+    | barca == "Derecha" = (MYC ((m1+i1,c1+i2),(m2-i1,c2-i2),"Izquierda"))
 
 ej3 :: MisionerosYCanibales
-ej3 = ((30,20),(10,10),"Izquierda")
+ej3 = MYC ((40,20),(10,10),"Izquierda")
 
 {-
 Ejercicio 2
@@ -195,16 +193,19 @@ el contenido sobrante del vertido se desecha).
 -}
 type Jarra = (Int,Int) -- (Contenido, Capacidad maxima de la jarra)
 type Vertido = String
-type ProblemaDeLasJarras = (Jarra,Jarra)
+data ProblemaDeLasJarras = ProbJarras (Jarra,Jarra)
+    deriving Show
 
 verter :: ProblemaDeLasJarras -> Vertido -> ProblemaDeLasJarras
-verter ((c1,cap1),(c2,cap2)) v  
-    | v == "1 a 2" = ((0,cap1),(capmax (c1+c2) cap2,cap2))
-    | v == "2 a 1" =  ((capmax (c1+c2) cap1,cap1),(0,cap2))
+verter (ProbJarras ((c1,cap1),(c2,cap2))) v  
+    | v == "1 a 2" = ProbJarras ((0,cap1),(min (c1+c2) cap2,cap2))
+    | v == "2 a 1" =  ProbJarras ((min (c1+c2) cap1,cap1),(0,cap2))
 
-capmax cont cap = if (cont >= cap) then cap else cont -- se puede cambiar por un min
+--capmax cont cap = if (cont >= cap) then cap else cont -- se puede cambiar por un min
+
+
 ej5 :: ProblemaDeLasJarras
-ej5 = ((3,5),(2,3))
+ej5 = ProbJarras ((2,5),(1,3))
 
 {-
 EJERCICIO 6
@@ -271,13 +272,14 @@ son correctos.
 
 type Movil =  (String,Int) -- (Operador movil, numero del movil)
 type Tarifa = Int
-type ContratoMovil = (Movil, Tarifa)
+data ContratoMovil = CM (Movil, Tarifa)
+    deriving Show
 
 ej7 :: ContratoMovil
-ej7 = (("op1",601158225),2)
+ej7 = CM (("op1",661762235),2)
 
 costeLlamada :: ContratoMovil -> Movil -> Float -> Float
-costeLlamada ((op1,m1),t1) (op2,m2) num
+costeLlamada (CM ((op1,m1),t1)) (op2,m2) num
     | t1 == 1 = 0.12 * num
     | t1 == 2 && op1 == op2 = 0.10 * num
     | otherwise = 0.15*num
@@ -355,24 +357,23 @@ correcta, que el movimiento recibido es una de las cadenas "Arriba", "Abajo",
 type Serpiente = [(Int,Int)]--Este tipo de datos representa las casillas ocupadas por la
 --serpiente, desde la cabeza hasta la cola.
 type Movimiento = String
-type PuzleSerpiente = (Serpiente,Int)
+data PuzleSerpiente = Serp (Serpiente,Int)
+    deriving Show
 
 moverSerpiente :: PuzleSerpiente -> Movimiento -> PuzleSerpiente
-moverSerpiente (xs,n) mov
-    | mov == "Arriba" = ([(i,j-1)] ++ (quitarCola xs),n+1)
-    | mov == "Abajo" = ([(i,j+1)] ++ (quitarCola xs),n+1)
-    | mov == "Izquierda" = ([(i-1,j)] ++ (quitarCola xs),n+1)
-    | mov == "Derecha" = ([(i+1,j)] ++ (quitarCola xs),n+1)
+moverSerpiente (Serp (xs,n)) mov
+    | mov == "Arriba" = Serp ([(i,j+1)] ++ (init xs),n+1)
+    | mov == "Abajo" = Serp ([(i,j-1)] ++ (init xs),n+1)
+    | mov == "Izquierda" = Serp ([(i-1,j)] ++ (init xs),n+1)
+    | mov == "Derecha" = Serp ([(i+1,j)] ++ (init xs),n+1)
     where (i,j) = head xs
 
 quitarCola :: Serpiente -> Serpiente
 quitarCola (x:[]) = []
 quitarCola (x:xs) = [x] ++ quitarCola xs
 
-
-
 ej9 :: PuzleSerpiente
-ej9 = ([(1,1),(1,2),(1,3)],4)
+ej9 = Serp ([(1,1),(1,2),(1,3)],4)
 
 {-
 Ejercicio 10
@@ -410,6 +411,76 @@ ej10 = (Pol (2,3) (Pol (1,32) PolCero))
 -- enunciado se encuentra en la url:
 -- http://www.cs.us.es/cursos/pd-2011/examenes/Septiembre/examen.pdf
 -- ---------------------------------------------------------------------
+{-
+Ejercicio 11
+
+Definir el tipo de datos Ficha como un sinónimo de un valor lógico. Definir el
+tipo de datos Columna como un sinónimo de una lista de fichas. Este tipo de
+datos representa las fichas colocadas en una de las columnas del tablero.
+Definir un nuevo tipo de datos CuatroEnRaya que tenga un único constructor
+con un argumento, una lista de columnas. Este tipo de datos representa la
+configuración actual del tablero. Siempre asumiremos que al construir un valor
+de este tipo de datos la lista de columnas proporcionada es correcta.
+
+Definir la función colocarFicha que recibe una Ficha, un Int (la columna) y
+un tablero CuatroEnRaya y devuelve el tablero CuatroEnRaya resultante de
+colocar la ficha en la columna especificada. Siempre asumiremos que la ficha, la
+columna y la configuración actual del tablero recibidas son correctas.
+
+Por ejemplo, dada la configuración inicial del tablero, [[ ],[ ],[ ],[ ],[ ],[ ],[ ]], si el jugador
+que inicia la partida juega con fichas True y decide colocar en la tercera columna,
+el tablero quedaría [[ ],[ ],[True],[ ],[ ],[ ],[ ]]. Si tras algunas jugadas el tablero se
+encuentra en una configuración [[False,False,False],[ ],[True],[ ],[True],[True],[ ]]
+y el jugador que juega con True decide poner en la primera columna, el tablero
+debería quedar con [[True,False,False,False],[ ],[True],[ ],[True],[True],[ ]].
+
+Consideremos la siguiente definición de un nuevo tipo de datos que representa de
+manera recursiva las colas con prioridad de números enteros:
+
+type P ri o ri d a d = Int
+data Cola a = ColaVacia | Encola r a P ri o ri d a d ( Cola a )
+deriving Show
+Es decir, una cola con prioridad de números enteros es la cola vacía o la cola
+obtenida añadiendo un número entero con una cierta prioridad (siempre de tipo
+Int) a una cola ya existente.
+-}
+
+type Ficha = Bool
+type Columna =  [Ficha]
+data CuatroEnRaya =  Raya [Columna]
+    deriving Show
+
+colocarFicha ::  Ficha -> Int -> CuatroEnRaya -> CuatroEnRaya
+colocarFicha f n xs = undefined
+        
+
+type Prioridad = Int
+data Cola a = ColaVacia | Encolar a Prioridad ( Cola a )
+    deriving Show
+
+
+
+-- Definir la función colocarFicha que recibe una Ficha, un Int (la columna) y
+-- un tablero CuatroEnRaya y devuelve el tablero CuatroEnRaya resultante de
+-- colocar la ficha en la columna especificada. Siempre asumiremos que la ficha, la
+-- columna y la configuración actual del tablero recibidas son correctas.
+{-
+Ejercicio 12    
+Definir la función primerElemento que recibe una Cola y devuelve un par con
+el primer elemento de la cola (es decir, de todos los elementos de la cola con la
+máxima prioridad, aquel que se introdujo primero) y su prioridad. La función
+no estará definida para la cola vacía.
+Así, por ejemplo, el primer elemento de la cola resultante de encolar el elemento 4
+con prioridad 5 en la cola vacía, devolvería el par compuesto por el elemento 4 y
+la prioridad 5. En el caso de que tuviéramos como entrada la cola resultante de
+encolar 3 con prioridad 10 en la cola resultante de encolar 6 con prioridad 8 en
+3
+la cola resultante de encolar 9 con prioridad 10 en la cola vacía, devolvería el par
+compuesto por el elemento 9 y la prioridad 10.
+Según la pseudociencia de la numerología, para calcular el número de nacimiento
+de una persona basta sumar los números que componen su fecha de nacimiento,
+volver a hacerlo con el resultado obtenido y así reiteradamente hasta obtener un
+solo guarismo entre el uno y el nueve.-}
 
 -- -------------------------------------------------------------------
 -- Ejercicio 13. (parcial 2 del curso 2018/19)
@@ -426,4 +497,18 @@ ej10 = (Pol (2,3) (Pol (1,32) PolCero))
 --
 -- 3. Defina un tipo sinónimo de una lista de planetas
 --
--- -------------------------------------------------------------------
+-- ------------------------------------------------------------------
+-- 1) 
+data Planeta = 
+    Pla {
+        name :: String, diameter :: String, population :: String, residents :: [String]
+    }
+    deriving Show
+
+    -- 2) 
+
+planetaPorDefecto :: Planeta
+planetaPorDefecto = Pla { name = "none", diameter= "none", population= "none", residents = [] }
+
+--3 ) 
+type Planetas = [Planeta]
