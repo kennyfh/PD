@@ -31,11 +31,10 @@
 -- ----------------------------------------------------------------------
 
 import Data.List as L
-import Data.Matrix as M
-import Data.Map as D
-import Control.Monad
+-- import Data.Matrix as M
+-- import Data.Map as D
+-- import Control.Monad
 import Control.Exception (catch, SomeException)
-
 
 -- ============================================================================
 -- Ejercicio 1. (2,5 ptos) Define la función
@@ -48,15 +47,19 @@ import Control.Exception (catch, SomeException)
 --   maximoConsecutivos [1,1,2,2,2,2,2,3,4,4,4,4]  ==  5
 --   maximoConsecutivos "abbcccddddeeeffg"         ==  4
 -- ----------------------------------------------------------------------------
-maximoConsecutivos :: (Eq a) => [a] -> Int
-maximoConsecutivos xs = maximum [numElementos x xs | x <- nub xs]
 
-numElementos a [] = 0
-numElementos a (x:xs) 
-    | a == x = 1 + (numElementos a xs)
-    | otherwise = numElementos a xs
+maximoConsecutivos xs = maximum $ listaContador xs
+
+listaContador (x:[]) = [(contadorconsecutivos x [])]
+listaContador (x:xs) = [(contadorconsecutivos x xs)] ++ listaContador xs
+
+contadorconsecutivos x [] = 1
+contadorconsecutivos x (y:ys)
+  | x==y = 1 + contadorconsecutivos x ys
+  | otherwise = 1
 
 -- ============================================================================
+
 -- ============================================================================
 -- Ejercicio 2. (2,5 ptos) Los árboles binarios con datos en nodos internos y
 -- hojas se pueden representar con el siguiente tipo de dato:
@@ -96,8 +99,33 @@ ejArbol = N 1 (N 4 (N 5 (H 2) (H 9)) (H 6)) (N 7 (H 8) (H 3))
 --   caminoEntreHojas 0 3 ejArbol  ==  []
 --   caminoEntreHojas 2 0 ejArbol  ==  []
 -- ----------------------------------------------------------------------------
+-- data Arbol a = H a
+--              | N a (Arbol a) (Arbol a)
+--                deriving Show
+caminoEntreHojas a b (H _)= []
+caminoEntreHojas a b (N x izq der)
+  | aiz && biz = caminoEntreHojas a b izq
+  | ader && bder = caminoEntreHojas a b der
+  | aiz && bder = (reverse $ camino a izq) ++ [x] ++ (camino b der)
+  | biz && ader = (reverse $ camino a der) ++ [x] ++ (camino b izq)
+  | otherwise = []
+  where aiz = perteneceA a izq
+        biz = perteneceA b izq
+        ader = perteneceA a der
+        bder = perteneceA b der 
 
-caminoEntreHojas = undefined
+perteneceA :: Eq a => a -> Arbol a -> Bool
+perteneceA x (H a) = x==a
+perteneceA x (N a izq der) = x==a || perteneceA x izq || perteneceA x der 
+
+
+camino :: Eq a => a -> Arbol a -> [a]
+camino x (H a)
+  | x==a = [a]
+  | otherwise = []
+camino x (N a izq der)
+  | perteneceA x izq = [a] ++ (camino x izq)
+  | perteneceA x der = [a] ++ (camino x der)
 
 -- ============================================================================
 
@@ -176,6 +204,13 @@ torres = undefined
 -- Indica una opcion: usuario
 -- Grogu
 
-main = undefined
-
+main :: IO()
+main = do
+    -- a 
+    putStrLn "Escribe un nombre de usuario"
+    fileName <- getLine
+    --print (fileName)
+    exist <- (doesFileExist fileName)
+    
+    
 -- ============================================================================

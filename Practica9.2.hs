@@ -33,9 +33,9 @@ import Data.List
 import Test.QuickCheck
 
 -- Hay que elegir una implementación del TAD colas:
-import ColaConListas
+-- import ColaConListas
 -- import ColaConDosListas
--- import I1M.Cola
+import I1M.Cola
     
 -- ---------------------------------------------------------------------
 -- Nota. A lo largo de la relación de ejercicios usaremos los siguientes
@@ -48,7 +48,15 @@ c4 = foldr inserta vacia [4,-1,7,3,8,10,0,3,3,4]
 c5 = foldr inserta vacia [15..20]
 c6 = foldr inserta vacia (reverse [1..20])
 -- ---------------------------------------------------------------------
-
+-- module ColaConListas
+-- (Cola,
+-- vacia, -- Cola a
+-- inserta, -- a -> Cola a -> Cola a
+-- primero, -- Cola a -> a
+-- resto, -- Cola a -> Cola a
+-- esVacia, -- Cola a -> Bool
+-- valida -- Cola a -> Bool
+-- ) where
 -- ---------------------------------------------------------------------
 -- Ejercicio 1: Definir la función
 --    ultimoCola :: Cola a -> a
@@ -59,8 +67,10 @@ c6 = foldr inserta vacia (reverse [1..20])
 -- ---------------------------------------------------------------------
 
 ultimoCola :: Cola a -> a
-ultimoCola c = undefined
-
+ultimoCola c
+    | esVacia c =  error "Cola vacía"
+    | esVacia (resto c) =  primero c
+    | otherwise =  ultimoCola (resto c)
 -- ---------------------------------------------------------------------
 -- Ejercicio 2: Definir la función
 --    longitudCola :: Cola a -> Int
@@ -70,8 +80,10 @@ ultimoCola c = undefined
 -- ---------------------------------------------------------------------
 
 longitudCola :: Cola a -> Int
-longitudCola c = undefined
-
+longitudCola c = longaux c 0
+    where longaux cola acc
+            | esVacia cola =  acc
+            | otherwise = longaux (resto cola) (acc+1)
 -- ---------------------------------------------------------------------
 -- Ejercicio 3: Definir la función 
 --    todosVerifican :: (a -> Bool) -> Cola a -> Bool
@@ -82,7 +94,10 @@ longitudCola c = undefined
 -- ---------------------------------------------------------------------
 
 todosVerifican :: (a -> Bool) -> Cola a -> Bool
-todosVerifican p c = undefined
+todosVerifican p c = all p (lista c [])
+    where lista cola acc
+            | esVacia cola =  acc
+            | otherwise = lista (resto cola) ((primero cola):acc)
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 4: Definir la función
@@ -94,7 +109,10 @@ todosVerifican p c = undefined
 -- ---------------------------------------------------------------------
 
 algunoVerifica :: (a -> Bool) -> Cola a -> Bool
-algunoVerifica p c = undefined
+algunoVerifica p c = any p (lista c [])
+    where lista cola acc
+            | esVacia cola =  acc
+            | otherwise = lista (resto cola) ((primero cola):acc)
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 5: Definir la función
@@ -105,8 +123,9 @@ algunoVerifica p c = undefined
 -- ---------------------------------------------------------------------
 
 ponAlaCola :: Cola a -> Cola a -> Cola a
-ponAlaCola c1 c2 = undefined
-
+ponAlaCola c1 c2
+    | esVacia c2 = c1
+    | otherwise =  ponAlaCola (inserta (primero c2) c1) (resto c2)
 -- ---------------------------------------------------------------------
 -- Ejercicio 6: Definir la función
 --    mezclaColas :: Cola a -> Cola a -> Cola a
@@ -117,7 +136,10 @@ ponAlaCola c1 c2 = undefined
 -- ---------------------------------------------------------------------
 
 mezclaColas :: Cola a -> Cola a -> Cola a
-mezclaColas c1 c2 = undefined
+mezclaColas c1 c2
+    | esVacia c1 = ponAlaCola c1 c2
+    | esVacia c2 = ponAlaCola c2 c1
+    | otherwise = ponAlaCola (foldr inserta vacia [(primero c1),(primero c2)]) (mezclaColas (resto c1) (resto c2))
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 7: Definir la función
@@ -130,7 +152,9 @@ mezclaColas c1 c2 = undefined
 -- ---------------------------------------------------------------------
 
 agrupaColas :: [Cola a] -> Cola a
-agrupaColas = undefined
+agrupaColas (c1:c2:cs)
+    | null cs = mezclaColas c1 c2
+    | otherwise = agrupaColas ([mezclaColas c1 c2]++cs)
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 8: Definir la función
@@ -142,7 +166,10 @@ agrupaColas = undefined
 -- ---------------------------------------------------------------------
 
 perteneceCola :: Eq a => a -> Cola a -> Bool
-perteneceCola y c = undefined
+perteneceCola y c
+    | esVacia c = False
+    | (primero c) == y = True
+    | otherwise = perteneceCola y (resto c)
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 9: Definir la función
@@ -154,7 +181,9 @@ perteneceCola y c = undefined
 -- ---------------------------------------------------------------------
 
 contenidaCola :: Eq a => Cola a -> Cola a -> Bool
-contenidaCola c1 c2 = undefined
+contenidaCola c1 c2
+    | esVacia c1 = True
+    | otherwise = (perteneceCola (primero c1) c2) && (contenidaCola (resto c1) c2)
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 10: Definir la función
@@ -166,7 +195,10 @@ contenidaCola c1 c2 = undefined
 -- ---------------------------------------------------------------------
 
 prefijoCola :: Eq a => Cola a -> Cola a -> Bool
-prefijoCola c1 c2 = undefined
+prefijoCola c1 c2
+    | esVacia c1 = False
+    | (primero c1) == (primero c2) = True
+    | otherwise =  ((primero c1) == (primero c2)) && (prefijoCola (resto c1) (resto c2))
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 11: Definir la función
@@ -176,9 +208,12 @@ prefijoCola c1 c2 = undefined
 --    subCola c2 c1 == False
 --    subCola c3 c1 == True
 -- ---------------------------------------------------------------------
-
+--revisar
 subCola :: Eq a => Cola a -> Cola a -> Bool
-subCola c1 c2 = undefined
+subCola c1 c2
+    | esVacia c2 = False
+    | (prefijoCola c1 c2) ==True = True
+    | otherwise = subCola c1 (resto c2)
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 12: Definir la función
@@ -187,10 +222,12 @@ subCola c1 c2 = undefined
 -- están ordenados en orden creciente. Por ejemplo,
 --    ordenadaCola c6 == True
 --    ordenadaCola c4 == False
--- ---------------------------------------------------------------------
-
+-- –---------------------------------------------------------------------
 ordenadaCola :: Ord a => Cola a -> Bool
-ordenadaCola c = undefined
+ordenadaCola c
+    | esVacia c = True
+    | esVacia (resto c) = True
+    | otherwise = (primero c) < (primero $ resto c) && (ordenadaCola (resto c))
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 13.1: Definir una función
@@ -201,7 +238,7 @@ ordenadaCola c = undefined
 -- ---------------------------------------------------------------------
 
 lista2Cola :: [a] -> Cola a
-lista2Cola xs = undefined
+lista2Cola xs = foldr inserta vacia (reverse xs)
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 13.2: Definir una función
@@ -212,7 +249,9 @@ lista2Cola xs = undefined
 -- ---------------------------------------------------------------------
 
 cola2Lista :: Cola a -> [a]
-cola2Lista c = undefined
+cola2Lista c
+    | esVacia (resto c) = [primero c]
+    | otherwise = [(primero c)] ++ (cola2Lista $ resto c)
 
 -- ---------------------------------------------------------------------
 -- Ejercicio 13.3. Comprobar con QuickCheck que la función cola2Lista es
@@ -240,7 +279,7 @@ prop_lista2Cola xs = undefined
 -- ---------------------------------------------------------------------
 
 maxCola :: Ord a => Cola a -> a
-maxCola p = undefined
+maxCola c = maximum $ cola2Lista c
 
 -- ---------------------------------------------------------------------
 -- Generador de colas                                          --
