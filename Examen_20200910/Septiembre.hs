@@ -33,7 +33,9 @@
 import Data.Matrix
 import Control.Monad
 import Control.Exception (catch, SomeException)
-
+import Data.List.Split
+import Data.Array
+import Text.CSV
 -- ----------------------------------------------------------------------
 -- Ejercicio 1. (3,5 puntos)
 -- ----------------------------------------------------------------------
@@ -198,5 +200,40 @@ dct xs = xs  -- por defecto, si no has hecho el primer ejercicio
 -- │  4.7100604e-2    0.17165993      1.015995    0.21707146     2.1683674 │
 -- │ -6.9366634e-2    0.15452802    -2.0144224    0.40451404  1.1743596e-4 │
 -- └                                                                       ┘
+main :: IO()
+main = do
+    putStrLn "Luke, pasame el nombre del fichero:"
+    input <- getLine
+    exception <- catch (readFile input) (\err -> (print (err::SomeException) >> return ""))
+    if (length exception > 0) 
+        then do
+            --print exception    
+            let l = map (\x -> splitOn " " x) (lines exception)
+            --print l
+            let n = length $ head l
+            --print n
+            let m = map (\x -> read x::Float) (concat l)
+            print m
+            let array = listArray ((1,1),(n,n)) m
+            print array
 
-main = undefined
+        else return ()
+
+main' :: IO()
+main' = do
+    putStrLn "Grogu, pasame el nombre de la matriz que queremos ver"
+    x <- getLine
+    --print x
+    csv <- parseCSVFromFile x
+    let filas = case csv of 
+                Right lineas -> lineas
+                _ -> []    
+    --print filas
+
+    if null filas then
+        putStrLn "El fichero no es un CSV valido o carece de contenido"
+    else do
+        let longitud = length $ head filas
+        let matriz =  map (\x -> read x::Float) (concat filas)
+        let a = listArray ((1,1),(longitud,longitud)) matriz
+        print a
